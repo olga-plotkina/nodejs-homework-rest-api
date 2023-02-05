@@ -17,7 +17,7 @@ const contactsSchema = Schema(
       default: false,
     },
     owner: {
-      type: String,
+      type: Schema.Types.ObjectId,
       ref: "user",
     },
   },
