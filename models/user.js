@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const gravatar = require("gravatar");
 
 const usersSchema = Schema(
   {
@@ -20,9 +21,18 @@ const usersSchema = Schema(
       type: String,
       default: null,
     },
+    avatarUrl: {
+      type: String,
+    },
   },
   { versionKey: false }
 );
+
+usersSchema.pre("save", function (next) {
+  const url = gravatar.url(this.email);
+  this.avatarUrl = url;
+  next();
+});
 
 const Users = model("user", usersSchema);
 

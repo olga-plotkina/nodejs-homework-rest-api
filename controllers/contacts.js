@@ -12,13 +12,15 @@ const {
 } = require("../helpers/errors");
 
 async function getContactsController(req, res, next) {
-  const owner = req.user.email;
-  const contacts = await getContacts(owner);
+  const owner = req.user._id;
+  const { page = 1, limit = 20, favorite } = req.query;
+
+  const contacts = await getContacts(owner, { page, limit, favorite });
   res.json(contacts);
 }
 
 async function getContactByIdController(req, res, next) {
-  const owner = req.user.email;
+  const owner = req.user._id;
   const { contactId } = req.params;
   const contact = await getContactById(contactId, owner);
   if (!contact) {
@@ -28,20 +30,20 @@ async function getContactByIdController(req, res, next) {
 }
 
 async function postContactController(req, res, next) {
-  const owner = req.user.email;
+  const owner = req.user._id;
   const contact = await addContact(req.body, owner);
   res.status(201).json(contact);
 }
 
 async function deleteContactController(req, res, next) {
   const { contactId } = req.params;
-  const owner = req.user.email;
+  const owner = req.user._id;
   await removeContact(contactId, owner);
   res.json({ message: "contact deleted" });
 }
 
 async function changeContactController(req, res, next) {
-  const owner = req.user.email;
+  const owner = req.user._id;
   if (!req.body) {
     throw new MissingFieldsError("Missing fields");
   }
@@ -55,7 +57,7 @@ async function changeContactController(req, res, next) {
 }
 
 async function changeFavoriteStatusController(req, res, next) {
-  const owner = req.user.email;
+  const owner = req.user._id;
 
   if (!req.body) {
     throw new MissingFieldsError("Missing field favorite");
