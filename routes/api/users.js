@@ -6,15 +6,18 @@ const {
   logoutUserController,
   refreshUserController,
   changeSubscriptionController,
+  checkVerifyController,
 } = require("../../controllers/users");
 const { uploadController } = require("../../controllers/files");
 
 const uploadMiddleware = require("../../middlewares/uploadMidleware");
 const { asyncWrapper } = require("../../helpers/apiHelpers");
 
-const auth = require("../../middlewares/auth");
+const { authMiddleware, verifyMiddleware } = require("../../middlewares/auth");
+
 const {
   authUserValidation,
+  checkVerifyValidation,
 } = require("../../middlewares/validationMiddleware");
 
 routers.post(
@@ -23,17 +26,28 @@ routers.post(
   asyncWrapper(registerUserController)
 );
 
-routers.post("/login", authUserValidation, asyncWrapper(loginUserController));
+routers.post(
+  "/login",
+  verifyMiddleware,
+  authUserValidation,
+  asyncWrapper(loginUserController)
+);
 
-routers.get("/logout", auth, asyncWrapper(logoutUserController));
+routers.post(
+  "/verify",
+  checkVerifyValidation,
+  asyncWrapper(checkVerifyController)
+);
 
-routers.get("/current", auth, asyncWrapper(refreshUserController));
+routers.get("/logout", authMiddleware, asyncWrapper(logoutUserController));
 
-routers.patch("/", auth, asyncWrapper(changeSubscriptionController));
+routers.get("/current", authMiddleware, asyncWrapper(refreshUserController));
+
+routers.patch("/", authMiddleware, asyncWrapper(changeSubscriptionController));
 
 routers.patch(
   "/avatars",
-  auth,
+  authMiddleware,
   uploadMiddleware.single("avatar"),
   uploadController
 );

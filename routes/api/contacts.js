@@ -8,7 +8,7 @@ const {
   changeFavoriteStatusController,
 } = require("../../controllers/contacts");
 const { asyncWrapper } = require("../../helpers/apiHelpers");
-const auth = require("../../middlewares/auth");
+const { authMiddleware } = require("../../middlewares/auth");
 const {
   addContactValidation,
   patchValidation,
@@ -18,7 +18,7 @@ const {
 
 const routers = express.Router();
 
-routers.use(auth);
+routers.use(authMiddleware);
 
 routers.get("/", asyncWrapper(getContactsController));
 

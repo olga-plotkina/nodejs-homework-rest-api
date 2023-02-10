@@ -1,11 +1,14 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const { nanoid } = require("nanoid");
+const { sendNodemailer } = require("../helpers/sendNodemailer");
 
 const { Users } = require("../models/user");
 const {
   NotAuthorizedError,
   ConflictExistingEmailError,
+  WrongParametersError,
 } = require("../helpers/errors");
 const { SECRET_KEY } = process.env;
 
@@ -16,9 +19,19 @@ const registerUser = async ({ email, password }) => {
   }
 
   const hashPassword = bcrypt.hashSync(password, 10);
+  const verificationToken = nanoid();
 
-  const newUser = await Users.create({ email, password: hashPassword });
+  const newUser = await Users.create({
+    verificationToken,
+    email,
+    password: hashPassword,
+  });
 
+  await sendNodemailer({
+    to: email,
+    subject: "Please confirm your email",
+    html: `<a href="localhost:8085/users/verify/${verificationToken}">Confirm your email</a>`,
+  });
   return newUser;
 };
 
@@ -59,6 +72,23 @@ const refreshUser = async (token) => {
   };
 };
 
+const checkVerify = async (email) => {
+  const candidate = await Users.findOne({ email });
+  if (!candidate) {
+    throw new ConflictExistingEmailError("User with this email does not exist");
+  }
+
+  if (candidate.verify === true) {
+    throw new WrongParametersError("Verification has already been passed");
+  }
+
+  await sendNodemailer({
+    to: email,
+    subject: "Please confirm your email",
+    html: `<a href="localhost:8085/users/verify/${candidate.verificationToken}">Confirm your email</a>`,
+  });
+};
+
 const changeSubscription = async (id, body) => {
   return await Users.findOneAndUpdate(
     { _id: id },
@@ -71,6 +101,7 @@ const changeSubscription = async (id, body) => {
 };
 
 module.exports = {
+  checkVerify,
   registerUser,
   loginUser,
   logoutUser,

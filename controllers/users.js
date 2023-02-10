@@ -1,10 +1,10 @@
-const { Users } = require("../models/user");
 const {
   registerUser,
   loginUser,
   logoutUser,
   refreshUser,
   changeSubscription,
+  checkVerify,
 } = require("../services/usersService");
 
 const { MissingFieldsError, NotAuthorizedError } = require("../helpers/errors");
@@ -18,8 +18,6 @@ const registerUserController = async (req, res) => {
 
 const loginUserController = async (req, res) => {
   const userAccount = await loginUser(req.body);
-
-  console.log(userAccount);
   res.status(201).json({
     user: { email: userAccount.email, subscription: userAccount.subscription },
     token: userAccount.token,
@@ -41,8 +39,13 @@ const refreshUserController = async (req, res) => {
   res.json(user);
 };
 
+const checkVerifyController = async (req, res) => {
+  const { email } = req.body;
+  await checkVerify(email);
+  res.json({ message: "Verification email sent" });
+};
+
 const changeSubscriptionController = async (req, res) => {
-  console.log(req.body);
   if (!req.body.subscription) {
     throw new MissingFieldsError("Missing field subscription");
   }
@@ -56,4 +59,5 @@ module.exports = {
   logoutUserController,
   refreshUserController,
   changeSubscriptionController,
+  checkVerifyController,
 };
