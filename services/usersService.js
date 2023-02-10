@@ -34,25 +34,40 @@ const loginUser = async ({ email, password }) => {
   }
 
   const token = jwt.sign({ _id: candidate._id }, SECRET_KEY);
-
-  return {
-    user: { email: candidate.email, subscription: candidate.subscription },
-    token,
-  };
+  const user = await Users.findByIdAndUpdate(
+    candidate._id,
+    { token },
+    { new: true }
+  );
+  return user;
 };
 
 const logoutUser = async (id) => {
   const candidate = await Users.findById(id);
-  if (!candidate) {
-    throw new NotAuthorizedError("Not authorized");
-  }
-  candidate.token = null;
-  return;
+  return candidate;
 };
 
 const refreshUser = async (token) => {
   const candidate = await Users.findOne({ token });
-  return { email: candidate.email, subscription: candidate.subscription };
+  if (!candidate) {
+    throw new NotAuthorizedError("Not authorized");
+  }
+  return {
+    email: candidate.email,
+    subscription: candidate.subscription,
+    avatarUrl: candidate.avatarUrl,
+  };
+};
+
+const changeSubscription = async (id, body) => {
+  return await Users.findOneAndUpdate(
+    { _id: id },
+    { subscription: body.subscription },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 };
 
 module.exports = {
@@ -60,4 +75,5 @@ module.exports = {
   loginUser,
   logoutUser,
   refreshUser,
+  changeSubscription,
 };

@@ -8,20 +8,20 @@ const auth = async (req, res, next) => {
   const { authorization = "" } = req.headers;
   const [bearer, token] = authorization.split(" ");
   if (!token || bearer !== "Bearer") {
-    next(new NotAuthorizedError("Not authorized"));
+    return res.status(401).json({ message: "Not authorized1" });
   }
 
   try {
     const { _id } = jwt.verify(token, SECRET_KEY);
     const candidate = await Users.findById(_id);
     if (!candidate) {
-      next(new NotAuthorizedError("Not authorized"));
+      return res.status(401).json({ message: "Not authorized2" });
     }
     req.user = candidate;
-    req.user.token = token;
+    console.log("candidate in middleware", candidate);
     next();
   } catch (error) {
-    next(new NotAuthorizedError("Not authorized"));
+    next(new NotAuthorizedError(error.message));
   }
 };
 
