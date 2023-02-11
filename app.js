@@ -4,6 +4,7 @@ const cors = require("cors");
 
 const contactsRouter = require("./routes/api/contacts");
 const usersRouter = require("./routes/api/users");
+const authRouter = require("./routes/api/auth");
 const { errorHandler } = require("./helpers/apiHelpers");
 
 const app = express();
@@ -17,6 +18,7 @@ app.use("/api", express.static("./public"));
 
 app.use("/api/contacts", contactsRouter);
 app.use("/api/users", usersRouter);
+app.use("/auth/verify", authRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });
